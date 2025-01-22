@@ -2,9 +2,10 @@
 
 namespace Raketa\BackendTestTask\Controller;
 
+use Exception;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use Raketa\BackendTestTask\Domain\Entity\CartItem;
+use Raketa\BackendTestTask\Domain\Cart\CartItem;
 use Raketa\BackendTestTask\Repository\CartManager;
 use Raketa\BackendTestTask\Repository\ProductRepository;
 use Raketa\BackendTestTask\Utils\Http\JsonResponse;
@@ -21,23 +22,24 @@ readonly class AddToCartController
     {
     }
 
+    /**
+     * @throws Exception
+     */
     public function execute(RequestInterface $request): ResponseInterface
     {
+        // Считаю, что валидный json
         $rawRequest = json_decode($request->getBody()->getContents(), true);
 
-        // Проверка на ошибку декодирования JSON
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            $response = new JsonResponse();
-            $response->create([
-                'status'  => 'error',
-                'message' => 'Invalid JSON format'
+        if (empty($rawRequest['productUuid']) || empty($rawRequest['quantity']) || (intval($rawRequest['quantity']) < 1)) {
+            return (new JsonResponse())->create([
+                'status' => 'error',
+                'error'  => 'Invalid request',
             ], 400);
-            return $response;
         }
 
         $product = $this->productRepository->getByUuid($rawRequest['productUuid']);
 
-        $cart = $this->cartManager->getCart();
+        $cart = $this->cartManager->get();
         $cart->addItem(new CartItem(
             Uuid::uuid4()->toString(),
             $product->getUuid(),
@@ -45,12 +47,9 @@ readonly class AddToCartController
             $rawRequest['quantity'],
         ));
 
-        $response = new JsonResponse();
-        $response->create([
+        return (new JsonResponse())->create([
             'status' => 'success',
             'cart'   => $this->cartView->toArray($cart)
         ]);
-
-        return $response;
     }
 }

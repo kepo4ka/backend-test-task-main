@@ -1,8 +1,8 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
-namespace Raketa\BackendTestTask\Controller;
+namespace Raketa\BackendTestTask\Utils\Http;
 
 use Psr\Http\Message\MessageInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -13,6 +13,26 @@ use Psr\Http\Message\StreamInterface;
  */
 final class JsonResponse implements ResponseInterface
 {
+    // Конструктор заглушка
+    public function __construct()
+    {
+        // TODO: Implement __construct() method.
+    }
+
+    public function create(array $data, int $status_code = 200): self
+    {
+        $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        if ($json === false) {
+            throw new \RuntimeException('Failed to encode JSON');
+        }
+
+        $this->getBody()->write($json);
+        return $this
+            ->withHeader('Content-Type', 'application/json; charset=utf-8')
+            ->withStatus($status_code);
+    }
+
+
     public function getProtocolVersion(): string
     {
         // TODO: Implement getProtocolVersion() method.

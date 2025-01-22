@@ -1,52 +1,69 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Raketa\BackendTestTask\Repository;
 
 use Exception;
 use Psr\Log\LoggerInterface;
-use Raketa\BackendTestTask\Domain\Entity\Cart;
-use Raketa\BackendTestTask\Infrastructure\ConnectorFacade;
+use Raketa\BackendTestTask\Domain\Cart\Cart;
+use Raketa\BackendTestTask\Infrastructure\storage\StorageException;
+use Raketa\BackendTestTask\Infrastructure\storage\StorageInterface;
 
-class CartManager extends ConnectorFacade
+final readonly class CartManager
 {
-    public $logger;
+    private const STORAGE_PREFIX = 'customer_cart';
+    private string $sessionId;
+    private string $storage_key;
 
-    public function __construct($host, $port, $password)
+    public function __construct(
+        private StorageInterface $storage,
+        private LoggerInterface  $logger,
+        private string           $prefix = self::STORAGE_PREFIX
+    )
     {
-        parent::__construct($host, $port, $password, 1);
-        parent::build();
+        $this->sessionId = session_id(); // если добавится мобильное приложение/API, то будет грустно
+        $this->storage_key = $this->buildStorageKey();
     }
 
-    public function setLogger(LoggerInterface $logger)
-    {
-        $this->logger = $logger;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function saveCart(Cart $cart)
+    public function save(Cart $cart): void
     {
         try {
-            $this->connector->set($cart, session_id());
+            $this->storage->set(
+                $this->storage_key,
+                serialize($cart)
+            );
         } catch (Exception $e) {
-            $this->logger->error('Error');
+            $this->logger->error('Failed to save cart', [
+                'error'     => $e->getMessage(),
+                'sessionId' => $this->sessionId
+            ]);
         }
     }
 
     /**
-     * @return ?Cart
+     * @throws Exception
      */
-    public function getCart()
+    public function get(): ?Cart
     {
         try {
-            return $this->connector->get(session_id());
-        } catch (Exception $e) {
-            $this->logger->error('Error');
-        }
+            $cart_data = $this->storage->get($this->storage_key);
+            if (false === $cart_data) {
+                return null;
+            }
 
-        return new Cart(session_id(), []);
+            return unserialize($cart_data);
+        } catch (Exception $e) {
+            $this->logger->error('Failed to get cart', [
+                'error'     => $e->getMessage(),
+                'sessionId' => $this->sessionId
+            ]);
+        }
+        return null;
+    }
+
+    private function buildStorageKey(): string
+    {
+        return "{$this->prefix}:{$this->sessionId}";
     }
 }

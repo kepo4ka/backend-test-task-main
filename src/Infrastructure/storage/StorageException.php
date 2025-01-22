@@ -2,13 +2,13 @@
 
 declare(strict_types = 1);
 
-namespace Raketa\BackendTestTask\Infrastructure;
+namespace Raketa\BackendTestTask\Infrastructure\storage;
 
-class ConnectorException implements \Throwable
+readonly class StorageException implements \Throwable
 {
     public function __construct(
-        private string $message,
-        private int $code,
+        private string      $message,
+        private int         $code,
         private ?\Throwable $previous,
     ) { }
 

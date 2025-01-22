@@ -7,6 +7,8 @@ namespace Raketa\BackendTestTask\Repository;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Raketa\BackendTestTask\Domain\Cart\Cart;
+use Raketa\BackendTestTask\Domain\Cart\CartItem;
+use Raketa\BackendTestTask\Domain\Customer;
 use Raketa\BackendTestTask\Infrastructure\storage\StorageException;
 use Raketa\BackendTestTask\Infrastructure\storage\StorageInterface;
 
@@ -44,12 +46,12 @@ final readonly class CartManager
     /**
      * @throws Exception
      */
-    public function get(): ?Cart
+    public function get(): Cart
     {
         try {
             $cart_data = $this->storage->get($this->storage_key);
             if (false === $cart_data) {
-                return null;
+                return $this->getEmptyCart();
             }
 
             return unserialize($cart_data);
@@ -59,7 +61,29 @@ final readonly class CartManager
                 'sessionId' => $this->sessionId
             ]);
         }
-        return null;
+        return $this->getEmptyCart();
+    }
+
+    public function getEmptyCart(): Cart
+    {
+        // Заглушка
+        $customer = new Customer(
+            123,
+            'Иван',
+            'Фёдоров',
+            'Иванович',
+            'ivan@example.com',
+        );
+
+        // Заглушка
+        $paymentMethod = 'tinkoff';
+
+        return new Cart(
+            Cart::generateUuid(),
+            $customer,
+            $paymentMethod,
+            []
+        );
     }
 
     private function buildStorageKey(): string

@@ -1,17 +1,18 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Raketa\BackendTestTask\Domain\Cart;
 
-final readonly class CartItem
+final class CartItem
 {
     public function __construct(
-        private string $uuid,
-        private string $productUuid,
-        private float $price,
-        private int $quantity,
-    ) {
+        private readonly string $uuid,
+        private readonly string $productUuid,
+        private readonly float  $price,
+        private int             $quantity,
+    )
+    {
     }
 
     public function getUuid(): string
@@ -32,5 +33,10 @@ final readonly class CartItem
     public function getQuantity(): int
     {
         return $this->quantity;
+    }
+
+    public function setQuantity(int $quantity): void
+    {
+        $this->quantity = $quantity;
     }
 }

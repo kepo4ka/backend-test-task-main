@@ -4,9 +4,10 @@ namespace Raketa\BackendTestTask\Controller;
 
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use Raketa\BackendTestTask\Domain\CartItem;
+use Raketa\BackendTestTask\Domain\Entity\CartItem;
 use Raketa\BackendTestTask\Repository\CartManager;
 use Raketa\BackendTestTask\Repository\ProductRepository;
+use Raketa\BackendTestTask\Utils\Http\JsonResponse;
 use Raketa\BackendTestTask\View\CartView;
 use Ramsey\Uuid\Uuid;
 
@@ -14,14 +15,26 @@ readonly class AddToCartController
 {
     public function __construct(
         private ProductRepository $productRepository,
-        private CartView $cartView,
-        private CartManager $cartManager,
-    ) {
+        private CartView          $cartView,
+        private CartManager       $cartManager,
+    )
+    {
     }
 
-    public function get(RequestInterface $request): ResponseInterface
+    public function execute(RequestInterface $request): ResponseInterface
     {
         $rawRequest = json_decode($request->getBody()->getContents(), true);
+
+        // Проверка на ошибку декодирования JSON
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $response = new JsonResponse();
+            $response->create([
+                'status'  => 'error',
+                'message' => 'Invalid JSON format'
+            ], 400);
+            return $response;
+        }
+
         $product = $this->productRepository->getByUuid($rawRequest['productUuid']);
 
         $cart = $this->cartManager->getCart();
@@ -33,18 +46,11 @@ readonly class AddToCartController
         ));
 
         $response = new JsonResponse();
-        $response->getBody()->write(
-            json_encode(
-                [
-                    'status' => 'success',
-                    'cart' => $this->cartView->toArray($cart)
-                ],
-                JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
-            )
-        );
+        $response->create([
+            'status' => 'success',
+            'cart'   => $this->cartView->toArray($cart)
+        ]);
 
-        return $response
-            ->withHeader('Content-Type', 'application/json; charset=utf-8')
-            ->withStatus(200);
+        return $response;
     }
 }

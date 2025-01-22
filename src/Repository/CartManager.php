@@ -6,7 +6,7 @@ namespace Raketa\BackendTestTask\Repository;
 
 use Exception;
 use Psr\Log\LoggerInterface;
-use Raketa\BackendTestTask\Domain\Cart;
+use Raketa\BackendTestTask\Domain\Entity\Cart;
 use Raketa\BackendTestTask\Infrastructure\ConnectorFacade;
 
 class CartManager extends ConnectorFacade

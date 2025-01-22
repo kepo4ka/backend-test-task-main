@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace Raketa\BackendTestTask\Infrastructure;
 
-use Raketa\BackendTestTask\Domain\Cart;
+use Raketa\BackendTestTask\Domain\Entity\Cart;
 use Redis;
 use RedisException;
 
@@ -23,7 +23,7 @@ class Connector
     public function get(Cart $key)
     {
         try {
-            return unserialize($this->redis->get($key));
+            return unserialize($this->redis->get($key->getUuid()));
         } catch (RedisException $e) {
             throw new ConnectorException('Connector error', $e->getCode(), $e);
         }

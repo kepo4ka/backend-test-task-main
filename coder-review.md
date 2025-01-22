@@ -14,15 +14,46 @@
 - Добавить `final` к определению класса.
 - Не учитывается то, что параметры `thumbnail` и `description` могут иметь значение `null` (согласно схеме БД).
 
-### Класс Cart
-`Domain/Cart.php`
-- Перенести в папку `Entity`.
-
 ### Класс CartItem
 *Domain/CartItem.php*
-- Перенести в папку `Entity`.
 - Модификаторы доступа к параметрам конструктора публичные.
 
-### Класс Customer
-*Domain/Customer.php*
--  Перенести в папку `Entity`.
+## Взаимодействие с Redis
+### Класс Connector
+`Infrastructure/Connector.php`
+- Класс напрямую зависит от классов `Redis` и `Cart`(буква `D` в `SOLID`).
+- В конструкторе не указаны модификатор и тип переменной `$redis`.
+- Хочется, чтобы при генерации исключения в сообщении также было отображено, при какой операции случилась ошибка (`get`, `set`, `has`,).
+- В методе `set` добавить 3 параметр `$ttl = 0` для возможности динамически задавать время жизни.
+
+### Класс ConnectorFacade
+`Infrastructure/ConnectorFacade.php`
+- Класс зависит от класса `Redis`. (буква `D` в `SOLID`).
+- У свойств модификаторы `public` без необходимости.
+- У свойства `$connector` не указан тип `Connector`.
+- В методе `build` вызовы `auth` и `select` должны быть внутри try catch.
+- Внутри блока `catch` ничего не происходит.
+
+## Рефакторинг взаимодействия с Redis
+Классы `Connector` и `ConnectorFacade` зависят от `Redis` и `Cart`.
+Вместо этих классов добавить:
+- `StorageInterface` с необходимыми методами (`get`, `set`, `has` и т.д.)
+- Класс `RedisStorage` (наследуется от `StorageInterface`)
+Улучшения:
+- Можем заменить `RedisStorage` на другое хранилище (например, `Memcached`).
+- `Storage` не зависит от `Cart` и через него теперь можно работать с любыми объектами, а не только с `Cart`.
+
+### Класс ConnectorException
+*Infrastructure/ConnectorException.php*
+- Не хватает модификатора `final`.
+- Переименовать в `StorageException`
+
+### Класс CartManager
+*Repository/CartManager.php*
+- Класс зависит от данных, которые необходимы для подключения `Redis` - `$host, $port, $password`.
+- Класс зависит от класса `Connector`, а не от интерфейса.
+  - Внедрить зависимость через `StorageInterface`.
+- Мало информации при логировании исключений.
+
+
+

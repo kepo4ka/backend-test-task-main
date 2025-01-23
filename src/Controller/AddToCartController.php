@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Raketa\BackendTestTask\Controller;
 
 use Exception;
@@ -23,6 +25,7 @@ readonly class AddToCartController
     }
 
     /**
+     * @throws \Doctrine\DBAL\Exception
      * @throws Exception
      */
     public function execute(RequestInterface $request): ResponseInterface
@@ -38,14 +41,23 @@ readonly class AddToCartController
         }
 
         $product = $this->productRepository->getByUuid($rawRequest['productUuid']);
+        if (empty($product)) {
+            return (new JsonResponse())->create([
+                'status' => 'error',
+                'error'  => sprintf('Product `%s` not found', $rawRequest['productUuid']),
+            ], 404);
+        }
 
         $cart = $this->cartManager->get();
+
         $cart->addItem(new CartItem(
             Uuid::uuid4()->toString(),
             $product->getUuid(),
             $product->getPrice(),
             $rawRequest['quantity'],
         ));
+
+        $this->cartManager->save($cart);
 
         return (new JsonResponse())->create([
             'status' => 'success',

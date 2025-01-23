@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Raketa\BackendTestTask\Repository;
 
@@ -10,25 +10,47 @@ use Raketa\BackendTestTask\Domain\Product;
 
 final class ProductRepository extends Repository
 {
-    public function getByUuid(string $uuid): Product
+    /**
+     * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
+     */
+    public function getByUuid(string $uuid): ?Product
     {
-        $row = $this->connection->fetchOne(
-            "SELECT * FROM products WHERE uuid = " . $uuid,
-        );
-
-        if (empty($row)) {
-            throw new Exception('Product not found');
+        $rows = $this->getByUuids([$uuid]);
+        if (empty($rows)) {
+            return null;
         }
-
-        return $this->make($row);
+        return reset($rows);
     }
 
+    /**
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function getByUuids(array $uuids): array
+    {
+        return array_map(
+            fn(array $row): Product => $this->make($row),
+            $this->connection->fetchAllAssociative(
+                "SELECT * FROM products WHERE is_active = 1 AND uuid IN (:uuids)",
+                [
+                    'uuids' => $uuids,
+                ],
+            )
+        );
+    }
+
+    /**
+     * @throws \Doctrine\DBAL\Exception
+     */
     public function getByCategory(string $category): array
     {
         return array_map(
-            static fn (array $row): Product => $this->make($row),
+            fn(array $row): Product => $this->make($row),
             $this->connection->fetchAllAssociative(
-                "SELECT id FROM products WHERE is_active = 1 AND category = " . $category,
+                "SELECT id FROM products WHERE is_active = 1 AND category = :category",
+                [
+                    'category' => $category,
+                ]
             )
         );
     }

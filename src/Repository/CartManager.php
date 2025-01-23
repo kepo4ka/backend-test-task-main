@@ -51,7 +51,7 @@ final readonly class CartManager
         try {
             $cart_data = $this->storage->get($this->storage_key);
             if (false === $cart_data) {
-                return $this->getEmptyCart();
+                return $this->create();
             }
 
             return unserialize($cart_data);
@@ -61,12 +61,12 @@ final readonly class CartManager
                 'sessionId' => $this->sessionId
             ]);
         }
-        return $this->getEmptyCart();
+        return $this->create();
     }
 
-    public function getEmptyCart(): Cart
+    public function create(): Cart
     {
-        // Заглушка
+        // Заглушка (допустим, что cartManager как-то знает текущего клиента)
         $customer = new Customer(
             123,
             'Иван',

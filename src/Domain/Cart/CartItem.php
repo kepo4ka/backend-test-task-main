@@ -27,12 +27,17 @@ final class CartItem
 
     public function getPrice(): float
     {
-        return $this->price;
+        return round($this->price, 2);
     }
 
     public function getQuantity(): int
     {
         return $this->quantity;
+    }
+
+    public function getTotal(): float
+    {
+        return round($this->price * $this->quantity, 2);
     }
 
     public function setQuantity(int $quantity): void

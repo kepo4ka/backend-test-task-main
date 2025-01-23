@@ -92,9 +92,9 @@ final class Cart
         $total = 0;
 
         foreach ($this->items as $item) {
-            $total += $item->getPrice();
+            $total += $item->getPrice() * $item->getQuantity();
         }
-        return $total;
+        return round($total, 2);
     }
 
     public static function generateUuid(): string

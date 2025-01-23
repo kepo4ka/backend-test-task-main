@@ -1,21 +1,22 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Raketa\BackendTestTask\Domain;
 
 final readonly class Product
 {
     public function __construct(
-        private int $id,
-        private string $uuid,
-        private bool $isActive,
-        private string $category,
-        private string $name,
-        private float $price,
+        private int     $id,
+        private string  $uuid,
+        private bool    $isActive,
+        private string  $category,
+        private string  $name,
+        private float   $price,
         private ?string $description = null,
         private ?string $thumbnail = null,
-    ) {
+    )
+    {
     }
 
     public function getId(): int
@@ -55,6 +56,6 @@ final readonly class Product
 
     public function getPrice(): float
     {
-        return $this->price;
+        return round($this->price, 2);
     }
 }

@@ -14,13 +14,15 @@ use Raketa\BackendTestTask\View\CartView;
 readonly class GetCartController
 {
     public function __construct(
-        public CartView    $cartView,
-        public CartManager $cartManager
+        private CartView    $cartView,
+        private CartManager $cartManager
     )
     {
     }
 
     /**
+     * @return ResponseInterface
+     * @throws \Doctrine\DBAL\Exception
      * @throws Exception
      */
     public function execute(RequestInterface $request): ResponseInterface

@@ -23,7 +23,7 @@ final readonly class ProductsView
     {
         return array_map(
             fn(Product $product) => [
-                'id'          => $product->getId(), // надо ли передавать id из бд
+              //  'id'          => $product->getId(), // надо ли передавать id напрямую из бд?
                 'uuid'        => $product->getUuid(),
                 'category'    => $product->getCategory(),
                 'description' => $product->getDescription(),

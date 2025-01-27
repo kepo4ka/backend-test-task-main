@@ -22,7 +22,7 @@ final class JsonResponse implements ResponseInterface
     public function create(array $data, int $status_code = 200): self
     {
         $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-        if ($json === false) {
+        if (false === $json) {
             throw new \RuntimeException('Failed to encode JSON');
         }
 

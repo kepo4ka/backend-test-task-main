@@ -56,7 +56,7 @@ final readonly class CartView
          * @var CartItem $item
          */
         foreach ($cartItems as $item) {
-            $item_total = $item->getTotal();
+            $itemTotal = $item->getTotal();
 
             /**
              * @var Product $product
@@ -76,7 +76,7 @@ final readonly class CartView
                     'price'     => $product->getPrice(),
                 ],
             ];
-            $data['total'] += $item_total;
+            $data['total'] += $itemTotal;
         }
 
         return $data;
